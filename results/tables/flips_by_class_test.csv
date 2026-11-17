@@ -1,0 +1,15 @@
+model,gold,n,flip_rate_para,sensitivity_para,acc_P0
+qwen0.5b,yes,276,0.6920,0.3750,0.5761
+qwen0.5b,no,169,0.5266,0.2858,0.0118
+qwen0.5b,maybe,55,0.6727,0.3818,0.3273
+qwen0.5b,P0-confidence quartile 1,125,0.6480,0.3136,0.1760
+qwen0.5b,P0-confidence quartile 2,125,0.5040,0.2768,0.2880
+qwen0.5b,P0-confidence quartile 3,125,0.5600,0.3328,0.4240
+qwen0.5b,P0-confidence quartile 4,125,0.8240,0.4592,0.5440
+llama1b,yes,276,0.9674,0.5033,0.9928
+llama1b,no,169,0.9882,0.5627,0.0296
+llama1b,maybe,55,0.9818,0.5545,0.0000
+llama1b,P0-confidence quartile 1,125,0.9760,0.5976,0.3680
+llama1b,P0-confidence quartile 2,125,1.0000,0.5704,0.4400
+llama1b,P0-confidence quartile 3,125,0.9920,0.5304,0.6160
+llama1b,P0-confidence quartile 4,125,0.9360,0.4176,0.8080

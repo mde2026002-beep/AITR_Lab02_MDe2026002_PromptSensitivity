@@ -1,0 +1,162 @@
+%% =====================================================================
+%% Same Abstract, Different Conclusion: A Controlled Study of Prompt
+%% Sensitivity in LLM-Drawn Research Conclusions on PubMedQA
+%%
+%% Implementation paper (AI Tools for Research, Lab 02).
+%% Compile: tectonic main.tex   (or pdflatex main && bibtex main && pdflatex main x2)
+%% Every number below is produced by scripts/analyze.py -> results/tables/*.csv
+%% =====================================================================
+\documentclass[acmsmall,nonacm]{acmart}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setcopyright{none}
+\settopmatter{printacmref=false}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+
+\title{Same Abstract, Different Conclusion: A Controlled Study of Prompt Sensitivity in LLM-Drawn Research Conclusions}
+
+\author{Jagarlamudi Siva Sai Sumanth}
+\affiliation{%
+  \institution{Indian Institute of Information Technology Allahabad}
+  \city{Prayagraj}
+  \country{India}}
+\renewcommand{\shortauthors}{J. S. S. Sumanth}
+
+%% ABSTRACT -- written last, after all results were final.
+\begin{abstract}
+Researchers increasingly ask large language models (LLMs) to state what a study concludes, and they fix one prompt to do so. We test whether that conclusion survives equally reasonable rewordings of the prompt. On the official 500-abstract PubMedQA test set, two small open instruction-tuned models (Qwen2.5-0.5B and Llama-3.2-1B) were scored under 14 prompts in three families: paraphrase, surface format, and underspecification. A parse-free protocol reads the model's probabilities for yes/no/maybe directly. The setup was validated first: a majority-class baseline reproduces the published 55.2\% accuracy and 23.71 macro-F1 exactly. Rewording a fully specified prompt changed the conclusion for 63.4\% (Qwen) and 97.6\% (Llama) of abstracts. Prompts with near-identical accuracy reached opposite conclusions; for example, Llama said ``yes'' to 98\% of studies under one prompt and ``no'' to 66\% under another. Two analysts using different single prompts agreed on only 52--61\% of studies. Which kind of prompt change mattered most depended on the model, and every configuration with a low flip rate achieved it by giving nearly the same answer to every abstract. Reproducing contextual calibration did not improve macro-F1 for either model. It drove one model to answer almost always ``yes'' and the other almost always ``maybe'' (accuracy 11.4\%), because the empty-input answer the method treats as bias is a legitimate abstention in this task. Ensembling diverse prompts was the only intervention that improved both accuracy (Llama: 55.8\% to 60.4\%, McNemar $p=0.001$) and agreement between analysts (to 93\% with four prompts). Validation also showed that a repetition penalty in one model's shipped decoding defaults silently changed 6 of 40 greedy conclusions. We recommend reporting conclusion-level stability together with the diversity of predictions, and publishing decoding defaults, whenever LLMs are used to read research evidence.
+\end{abstract}
+
+\keywords{prompt sensitivity, reproducibility, contextual calibration, evidence synthesis, PubMedQA, small language models}
+
+\begin{document}
+\maketitle
+
+%% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+Researchers increasingly ask large language models (LLMs) to read a study and state what it concludes, for example when they screen or code evidence in a systematic review. In such use, one prompt is written, fixed, and applied to every study. Our earlier literature review~\cite{sumanth2026review} argued that this practice hides a researcher degree of freedom~\cite{gelman2013forking}. Many equally reasonable prompts exist, and the literature shows that semantically equivalent prompts can move benchmark accuracy by tens of points~\cite{sclar2024formatting,mizrahi2024stateofwhatart,errica2025sensitivity}. The review's central open question (its Section~7.2) was whether this benchmark-level sensitivity also shows up at the level that matters for research: \emph{does the conclusion drawn from a single study change when the prompt is reworded?}
+
+This paper tests that question experimentally. We use PubMedQA~\cite{jin2019pubmedqa}, in which each of 1{,}000 PubMed abstracts is paired with a research question and an expert yes/no/maybe conclusion. The abstract's own conclusion section is withheld from the model, so the task is a direct operationalisation of ``read the evidence and state the conclusion.'' We score two small, open, locally run instruction-tuned models on the official 500-item test set under 14 prompts. The prompts fall into three families that isolate mechanisms identified in the review: semantic paraphrase, surface formatting, and task underspecification. We then reproduce a published mitigation, contextual calibration~\cite{zhao2021calibrate}, and test multi-prompt ensembling.
+
+We ask three research questions:
+\begin{description}
+  \item[RQ1] How often does the conclusion for the same abstract change across semantically equivalent prompts?
+  \item[RQ2] Which kind of prompt change (paraphrase, format, underspecification) destabilises conclusions most, and how does prompt variation compare with run-to-run sampling variation?
+  \item[RQ3] Do contextual calibration and ensembling make conclusions more stable \emph{and} more accurate than a single prompt?
+\end{description}
+
+\noindent\textbf{Contributions.} Prompt sensitivity on PubMedQA has already been measured~\cite{hariprasad2026clinical,sadanandan2026cot}, so we do not claim to be the first to measure it. Our contributions are the following:
+(i)~a controlled, parse-free protocol that measures stability \emph{at the level of conclusions} (flip rate, Fleiss'~$\kappa$, and a ``two-analyst'' agreement metric), alongside accuracy;
+(ii)~a family-level comparison of prompt changes under equal set sizes;
+(iii)~a reproduction of contextual calibration, which shows when its stability gains are \emph{degenerate};
+(iv)~a baseline-validation finding: a decoding default shipped with one model silently changes greedy conclusions.
+All code, raw per-item probabilities, logs and figures are released for reproduction.
+
+%% =====================================================================
+\section{Related Work}
+\label{sec:related}
+
+\textbf{Prompt sensitivity.} Zhao et al.~\cite{zhao2021calibrate} traced few-shot instability to majority-label, recency and common-token biases. Lu et al.~\cite{lu2022fantastically} showed that example order alone moves accuracy from near chance to near state of the art. Sclar et al.~\cite{sclar2024formatting} found spreads of up to 76 accuracy points across meaning-preserving formats. Mizrahi et al.~\cite{mizrahi2024stateofwhatart} showed that model \emph{rankings} change across instruction paraphrases and argued for multi-prompt evaluation. Errica et al.~\cite{errica2025sensitivity} defined instance-level \emph{sensitivity} and \emph{consistency} metrics, which we adopt. Pecher et al.~\cite{pecher2026underspecification} attributed much of the observed sensitivity to underspecified prompts. Hua et al.~\cite{hua2025flaw} argued that part of it is an artifact of rigid answer parsing, which motivates our parse-free scoring. Cao et al.~\cite{cao2024worst} emphasised worst-prompt performance and found that existing consistency methods help little. Barrie et al.~\cite{barrie2024pss} adapted inter-coder reliability to text annotation as a ``prompt stability score''; our use of Fleiss'~$\kappa$ follows the same logic.
+
+\textbf{Biomedical question answering.} PubMedQA~\cite{jin2019pubmedqa} reports a majority-class baseline of 55.2\% accuracy, a fine-tuned BioBERT result of 68.1\%, and single-human performance of 78.0\%. Two recent studies examine prompt sensitivity on it. Hariprasad~\cite{hariprasad2026clinical} evaluates five small open models under five prompt \emph{styles} and finds that consistency and accuracy are largely independent: models can be ``reliably wrong.'' Sadanandan and Behzadan~\cite{sadanandan2026cot} report that chain-of-thought and few-shot prompting reduce MedGemma accuracy and that shuffling answer options changes 59.1\% of predictions. We differ in three ways. We hold the instruction's meaning fixed within families of equal size. We score answer distributions rather than parsed text. And we test whether mitigations change \emph{conclusion-level} stability.
+
+%% =====================================================================
+\section{Method}
+\label{sec:method}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[node distance=4mm and 5mm, every node/.style={font=\footnotesize, align=center},
+  box/.style={draw, rounded corners=2pt, minimum height=8mm, inner sep=3pt, fill=gray!6},
+  arr/.style={-{Stealth[length=2mm]}, thick}]
+\node[box] (data) {PubMedQA PQA-L\\1{,}000 abstracts};
+\node[box, right=of data] (split) {official test (500)\\dev (80, seed 2026)};
+\node[box, right=of split] (prompt) {14 frozen prompts\\paraphrase / format /\\underspecified};
+\node[box, right=of prompt] (score) {chat template +\\next-token scoring\\$p(\text{yes},\text{no},\text{maybe})$};
+\node[box, below=of score] (mit) {contextual calibration\\ensembles; B1 / B2 / MAJ};
+\node[box, left=of mit] (met) {macro-F1, accuracy;\\flip rate, sensitivity, $\kappa$;\\two-analyst agreement};
+\node[box, left=of met] (stat) {bootstrap CIs\\McNemar tests};
+\node[box, below=of mit] (cf) {content-free inputs ``N/A'', ``'', ``[MASK]''\\scored under every prompt};
+\draw[arr] (data) -- (split); \draw[arr] (split) -- (prompt); \draw[arr] (prompt) -- (score);
+\draw[arr] (score) -- (mit); \draw[arr] (mit) -- (met); \draw[arr] (met) -- (stat);
+\draw[arr] (cf) -- (mit);
+\end{tikzpicture}
+\caption{Experimental pipeline. The protocol, prompts and seeds were frozen before any test-split prediction was produced.}
+\Description{A flow diagram: dataset, split, prompts, scoring, then mitigations and baselines, metrics, and statistics. Content-free inputs also feed the scoring step.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Task and data}
+Each PubMedQA PQA-L item has a question (usually the article title phrased as a question), the abstract's sections without the conclusion, and an expert label in \{yes, no, maybe\}. We use the official 500-item test split (yes 276, no 169, maybe 55) and an 80-item dev split sampled with seed 2026 from the remaining items. The dev split is used only to select the B2 prompt and the majority class. A unit test checks that the conclusion text never appears in the model input, and the loader asserts that our test labels match the official ground-truth file. The data are MIT-licensed.
+
+\subsection{Models}
+We use Qwen2.5-0.5B-Instruct~\cite{qwen2025report} and Llama-3.2-1B-Instruct~\cite{grattafiori2024llama3}. Weight revisions are pinned by commit hash in the configuration. Both run in fp16 on an Apple M1 laptop with 8\,GB of memory, which is the setting of a researcher running models locally on sensitive material. A third model (Qwen2.5-1.5B-Instruct) was in the frozen plan but was dropped for time before any of its outputs existed; we return to this in Section~\ref{sec:limits}.
+
+\subsection{Prompts}
+Table~\ref{tab:prompts} summarises the 14 prompts; the full texts are in \texttt{src/prompts.py}. The canonical prompt P0 fully specifies the task. It names a systematic-review context, defines each label, and asks for one word. The \emph{paraphrase} family (P0--P4) rewords P0 and keeps its specification and layout. The \emph{format} family (P0, F1--F4) keeps P0's words and changes only separators, casing, field names or the order of fields. The \emph{underspecified} family (M1--M5) omits the label definitions and the output format. Each family has exactly five prompts, so stability metrics are comparable across families.
+
+\begin{table}[t]
+\caption{Prompt families. P0 belongs to both the paraphrase and format families.}
+\label{tab:prompts}
+\footnotesize
+\begin{tabularx}{\linewidth}{@{}lL{0.17\linewidth}Y@{}}
+\toprule
+\textbf{ID} & \textbf{Family} & \textbf{What differs from P0} \\
+\midrule
+P0 & canonical & ``You are assisting with a systematic review\ldots Answer `yes' if the evidence supports a positive answer, `no' if \ldots negative, `maybe' if \ldots inconclusive or mixed. Respond with exactly one word\ldots'' \\
+P1--P4 & paraphrase & Same specification, reworded (``evidence synthesis'', ``careful reviewer'', ``infer the study's conclusion'', \ldots) \\
+F1--F4 & format & \texttt{\#\#\#} headers; ALL CAPS; question before abstract; \texttt{PASSAGE :::}\,/\,\texttt{QUERY :::} fields \\
+M1--M5 & underspecified & Abstract and question only (in either order), ``Context:/Question:'', ``Read \ldots and answer'', ``What does this study conclude?'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Parse-free conclusion scoring}
+Each rendered prompt is wrapped in the model's chat template. We then read the next-token distribution at the first assistant position. Let $T_\ell$ be the single-token surface forms of label $\ell$ (e.g.\ ``yes'', ``Yes'', ``YES''). We define
+\begin{equation}
+  p(\ell \mid x) = \frac{\sum_{t \in T_\ell} \pi(t \mid x)}{\sum_{\ell'} \sum_{t \in T_{\ell'}} \pi(t \mid x)}, \qquad \hat{y}(x) = \arg\max_\ell p(\ell \mid x),
+\end{equation}
+where $\pi$ is the model's softmax over the full vocabulary. The denominator, the \emph{label mass}, is logged as a measure of instruction following. Scoring avoids free-text parsing, a known source of inflated sensitivity~\cite{hua2025flaw}, and it is deterministic for a fixed model, dtype and device. Llama-3.2's chat template inserts the current date into its system header, so we pass a fixed date to keep prompts identical across days.
+
+\subsection{Comparators and mitigations}
+We compare the following:
+\begin{itemize}
+  \item \textbf{MAJ}, which predicts the dev majority class (``yes'');
+  \item \textbf{B1}, the single canonical prompt P0, which is what a typical study does;
+  \item \textbf{B2}, the single prompt with the best dev macro-F1, i.e.\ ``prompt engineering'';
+  \item \textbf{CC}, contextual calibration of P0~\cite{zhao2021calibrate}: $q \propto p \oslash \hat{p}_{\text{cf}}$, where $\hat{p}_{\text{cf}}$ is the label distribution averaged over the content-free inputs ``N/A'', ``'' and ``[MASK]'' placed in the same prompt;
+  \item \textbf{ENS}, the average of label distributions over the paraphrase family (5 prompts) or over all 14;
+  \item \textbf{ENS+CC}, the same ensembles applied to calibrated distributions.
+\end{itemize}
+
+\subsection{Metrics}
+The primary accuracy metric is macro-F1, because ``maybe'' is rare (11\%). For a set of $K$ prompts with predictions $\hat{y}_k(x)$ we compute:
+\begin{itemize}
+  \item instance \emph{sensitivity}~\cite{errica2025sensitivity}, $S(x) = \binom{K}{2}^{-1} \sum_{i<j} \mathbb{1}[\hat{y}_i(x) \neq \hat{y}_j(x)]$, averaged over abstracts;
+  \item the \emph{flip rate}, the share of abstracts whose conclusion is not identical under all $K$ prompts;
+  \item Fleiss'~$\kappa$, treating prompts as raters;
+  \item the range of accuracy and macro-F1 across prompts.
+\end{itemize}
+Stability can be achieved trivially by always giving the same answer, so every stability figure is reported together with the share of predictions in the most common label. To estimate the practical risk we define \emph{two-analyst agreement}. Two analysts each draw $k$ distinct prompts from the nine fully specified prompts (paraphrase plus format) and report the ensemble conclusion; the metric is the share of abstracts on which they agree. We average it over 500 random draws. To compare prompt variation with run-to-run variation, we draw 10 samples per prompt from the temperature-scaled label distribution ($T \in \{0.7, 1.0\}$) and compute within-prompt pairwise disagreement.
+
+\subsection{Statistics and protocol}
+Confidence intervals are 95\% percentile bootstraps over abstracts (2{,}000 resamples, seed 2026). Accuracy differences against B1 use exact McNemar tests. The prompts, splits, metrics, seeds and decision rules (a flip rate of at least 10\% counts as ``unstable''; a mitigation ``helps'' if it improves macro-F1, or lowers the flip rate without lowering macro-F1) were frozen in \texttt{configs/experiment.json} before test predictions were generated. Protocol changes made after freezing (speed and loading fixes that did not change the results) are logged in the repository. Scoring 2 models $\times$ 14 prompts $\times$ 580 items (16{,}240 forward passes) took 3.7\,h on the M1 GPU (0.52\,s and 0.95\,s per pass).
+
+\input{results_body.tex}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}

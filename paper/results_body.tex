@@ -1,0 +1,148 @@
+%% =====================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Baseline validation}
+\label{subsec:validation}
+The checks below were run before any comparison (details in \texttt{baseline\_validation.md}).
+\begin{itemize}
+  \item \textbf{Published baseline reproduced.} The majority-class baseline gives 55.20\% accuracy and 23.71 macro-F1 on the test split, matching Table~5 of Jin et al.~\cite{jin2019pubmedqa} exactly.
+  \item \textbf{Scorer is deterministic.} Re-scoring 20 dev items gave the same predictions, with probabilities within 0.01 (fp16 noise). Batched and single-item scoring differ by at most 0.007.
+  \item \textbf{Scorer agrees with generation.} For Llama, the scored answer matched the first word of greedy generation on 40/40 dev items. For Qwen it matched 35/40 at first. Diagnosis traced the gap to Qwen2.5's shipped \texttt{generation\_config}, which sets \texttt{repetition\_penalty=1.1}; transformers applies this even in greedy decoding. The penalty lowers ``maybe'', which occurs in the prompt, but not ``Yes'', which does not, and it changed the generated conclusion for 6 of 40 abstracts. With the penalty set to 1.0, agreement rose to 39/40, and the remaining case is a near-tie. Our scorer reads raw logits and is unaffected, but the episode shows that ``greedy'' chat output can depend on a decoding default that few researchers would report.
+  \item \textbf{Both models are weak in absolute terms.} Each answered only 1 of 4 constructed sanity questions correctly. Under B1, Llama predicts ``yes'' for 98.2\% of abstracts and is statistically indistinguishable from MAJ (McNemar $p=0.45$). Qwen over-predicts ``maybe'' (45.8\%) and scores 35.8\% accuracy.
+\end{itemize}
+The stability findings below should be read as properties of small models.
+
+\begin{table}[t]
+\caption{Baselines and mitigations on the PubMedQA test set ($n=500$). Accuracy and macro-F1 in \%, with 95\% bootstrap CIs. ``Passes'' is forward passes per abstract; ``Maybe'' is the share of ``maybe'' predictions; $p$ is an exact McNemar test of accuracy against B1. B2 shows the prompt selected on dev.}
+\label{tab:methods}
+\footnotesize
+\begin{tabular}{@{}llrllrl@{}}
+\toprule
+Model & Method & Passes & Accuracy & Macro-F1 & Maybe & $p$ vs B1 \\
+\midrule
+\csname @@input\endcsname tables/methods_test.tex
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{RQ1: Conclusions change for most abstracts}
+\label{subsec:rq1}
+Under the five fully specified paraphrases, the conclusion changed under at least one prompt for 63.4\% [59.2, 67.6] of abstracts with Qwen and 97.6\% [96.2, 99.0] with Llama (Table~\ref{tab:stability}). Both values are far above the pre-specified 10\% threshold (frozen before test predictions existed), so H1 is supported. For 308 of the 500 abstracts (61.6\%), the conclusion flips for \emph{both} models. Agreement across paraphrases is at chance level (Fleiss'~$\kappa$ = 0.11 and $-0.10$).
+
+\emph{Accuracy hides this instability.} Llama's accuracy under P0--P3 lies in a narrow 53.8--56.4\% band, yet P0 concludes ``yes'' for 98.2\% of studies while P2 concludes ``no'' for 65.8\% (Figure~\ref{fig:shares}). Two prompts that would be reported as performing equally well reach opposite conclusions for most of the evidence base. This is Errica et al.'s~\cite{errica2025sensitivity} observation (aggregate accuracy conceals instance-level sensitivity) translated to the level of research conclusions. Figure~\ref{fig:perprompt} shows per-prompt macro-F1. Across all 14 prompts, macro-F1 spans 33.6 points for Qwen and 21.2 points for Llama.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_per_prompt_f1.pdf}
+  \caption{Macro-F1 on the test set for each of the 14 prompts. Dotted lines separate the prompt families.}
+  \Description{Dot plot with prompts on the x-axis and macro-F1 on the y-axis for two models. Qwen ranges from about 7 to 40; Llama from about 22 to 43. Which model scores higher changes from prompt to prompt.}
+  \label{fig:perprompt}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_label_shares.pdf}
+  \caption{Share of yes/no/maybe conclusions under each prompt. Each prompt mostly moves the model's default answer rather than its reading of individual abstracts.}
+  \Description{Stacked bars per prompt for two models. Qwen is mostly maybe under P1, P3 and P4 and mostly yes under the underspecified prompts. Llama is mostly yes except under P2 and P4, where it is mostly no, and it is mixed under the underspecified prompts.}
+  \label{fig:shares}
+\end{figure}
+
+\begin{table}[t]
+\caption{Conclusion stability by prompt family (raw probabilities unless marked CC). Sens.\ = mean pairwise disagreement (Errica et al.); Flip = abstracts whose conclusion is not identical across the family (\%, 95\% CI); $\kappa$ = Fleiss' kappa; Acc.\ = range of accuracy across prompts; $\Delta$F1 = range of macro-F1. The last two columns repeat Flip and $\kappa$ after contextual calibration.}
+\label{tab:stability}
+\footnotesize
+\begin{tabular}{@{}llrrlrlrrr@{}}
+\toprule
+Model & Family & $K$ & Sens. & Flip & $\kappa$ & Acc. & $\Delta$F1 & Flip$_{\text{CC}}$ & $\kappa_{\text{CC}}$ \\
+\midrule
+\csname @@input\endcsname tables/stability_test.tex
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{RQ2: The source of instability depends on the model}
+\label{subsec:rq2}
+Within each model the families differ clearly (non-overlapping CIs), but the ordering is reversed between the two models (Figure~\ref{fig:flips}). For Qwen, surface format is the most destabilising change (flip rate 94.6\%), ahead of paraphrase (63.4\%) and underspecification (7.2\%). For Llama, paraphrase (97.6\%) and underspecification (81.0\%) dominate, and format barely matters (3.0\%).
+
+Every low flip rate coincides with a \emph{collapse} onto one label. Qwen predicts ``yes'' for 97.4\% of abstracts under the underspecified prompts, and Llama predicts ``yes'' for 99.0\% under the format prompts. Low instability is therefore not evidence of reliable reading. H2, which expected underspecified prompts to be the \emph{least} stable~\cite{pecher2026underspecification}, is contradicted for both models. For Llama the underspecified prompts were even the most accurate (M5: macro-F1 43.3, the best single Llama prompt). One caveat applies: under these prompts the probability mass on label tokens is low (0.00--0.38), meaning the model would not naturally answer with a bare label, so restricted scoring forces a choice.
+
+\textbf{Prompt variance versus sampling variance.} Disagreement between paraphrases under greedy scoring (Qwen 34.6\%, Llama 52.9\%) is of the same size as within-prompt disagreement from sampling at $T=0.7$ (31.6\%, 46.0\%) or $T=1.0$ (41.7\%, 53.8\%). The two sources add: sampling across paraphrases at $T=1.0$ gives 49.8\% and 61.2\% (Figure~\ref{fig:variance}). The difference is that prompt effects are systematic. Repeating a run with the same prompt does not average them away, and a single published prompt fixes them for every study it is applied to.
+
+\textbf{Model rankings.} Llama has the higher macro-F1 under 9 prompts and Qwen under 5. For 49.5\% of prompt pairs the two prompts disagree about which model is better, reproducing the ranking instability of Mizrahi et al.~\cite{mizrahi2024stateofwhatart} on a two-model, research-conclusion task.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_flip_rate_by_family.pdf}
+  \caption{Share of abstracts whose conclusion changes within each prompt family (95\% bootstrap CIs), before and after contextual calibration.}
+  \Description{Grouped bars. Raw: Qwen is highest for format (95\%) and lowest for underspecified (7\%); Llama is highest for paraphrase (98\%) and lowest for format (3\%). After calibration Qwen falls to 16--37\%, while Llama stays near 60--100\%.}
+  \label{fig:flips}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \begin{minipage}[t]{0.49\linewidth}
+    \includegraphics[width=\linewidth]{figures/fig_variance_sources.pdf}
+    \caption{Pairwise disagreement from repeated sampling of one prompt versus across five paraphrases.}
+    \Description{Bars comparing within-prompt sampling at T 0.7 and 1.0 with between-paraphrase disagreement. Between-paraphrase disagreement is similar to sampling at T 0.7 to 1.0, and highest when both are combined.}
+    \label{fig:variance}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.49\linewidth}
+    \includegraphics[width=\linewidth]{figures/fig_two_analyst_agreement.pdf}
+    \caption{Probability that two analysts, each using $k$ different fully specified prompts, reach the same conclusion.}
+    \Description{Lines for agreement against k from 1 to 4. Raw Llama rises from 61\% to 93\%; raw Qwen from 52\% to 69\%. Calibrated Qwen stays high (88--98\%); calibrated Llama is lowest (44--73\%).}
+    \label{fig:twoanalyst}
+  \end{minipage}
+\end{figure}
+
+\subsection{RQ3: Calibration fails; ensembling helps when prompt biases differ}
+\label{subsec:rq3}
+\textbf{Contextual calibration} did not improve macro-F1 for either model (Table~\ref{tab:methods}), so H3 is not supported. For Qwen, calibrated P0 scores 24.6 macro-F1 (vs 24.5 for B1) and predicts ``yes'' for 98.4\% of abstracts, which makes its accuracy identical to MAJ. For Llama, calibration is harmful: accuracy falls from 55.8\% to 11.4\% ($p<0.001$) as 99.6\% of predictions become ``maybe''. Calibration lowers Qwen's paraphrase flip rate from 63.4\% to 15.6\%, but only through the collapse onto ``yes''. Llama's flip rate is unchanged (96.8\%), and its two-analyst agreement drops (Figure~\ref{fig:twoanalyst}).
+
+The content-free distributions explain both failures. For P0, Qwen answers the empty input with (yes, no, maybe) = (0.05, 0.40, 0.55) and Llama with (0.27, 0.73, 0.003). The calibration weights $1/\hat{p}_{\text{cf}}$ are therefore about 20 for Qwen's ``yes'' and about 330 for Llama's ``maybe''. Contextual calibration assumes that the answer to an empty input is pure bias~\cite{zhao2021calibrate}. Our conclusion task, however, contains an evidence-insufficient label, so ``maybe'' or ``no'' is arguably the \emph{correct} answer to ``N/A''. Calibration then penalises correct behaviour and inflates whichever label the model rightly avoided. We read this as a boundary condition of the method (instruction-tuned models; a task with an abstention-like class), not as a refutation of the original results.
+
+\textbf{Ensembling} helps Llama. Averaging the five paraphrases raises macro-F1 from 25.7 to 37.3 and accuracy from 55.8\% to 59.8\% ($p=0.027$); averaging all 14 prompts gives 60.4\% ($p=0.001$). With a Bonferroni correction over the seven comparisons per model ($\alpha=0.007$), the 14-prompt gain remains significant, but the paraphrase-ensemble gain ($p=0.027$) does not. Two-analyst agreement rises from 60.7\% with one prompt to 89.4\% with three and 93.4\% with four. For Qwen, the paraphrase ensemble \emph{hurts} (macro-F1 16.8): the paraphrases share a ``maybe'' bias, and averaging reinforces it. The 14-prompt ensemble, which mixes prompts with opposite biases, helps (macro-F1 29.4). Ensembling therefore stabilises conclusions only when the prompt biases are diverse.
+
+\textbf{Prompt selection on dev} (B2) gives the best macro-F1 for both models (Qwen 40.5 with F2; Llama 39.1 with P2), but the selected prompt does not transfer between models: F2 scores 23.7 on Llama, and P2 scores 29.0 on Qwen. For Llama, B2's accuracy is no different from B1's ($p=0.59$).
+
+\subsection{Failure and error analysis}
+\label{subsec:errors}
+\begin{itemize}
+  \item \textbf{The canonical prompt rarely concludes ``no''.} Under P0, recall of ``no'' studies is 1.2\% (Qwen) and 3.0\% (Llama), and Llama never concludes ``maybe''. A review that relied on this prompt would systematically over-report positive findings.
+  \item \textbf{Confidence does not signal stability.} For Qwen, abstracts in the highest quartile of P0 confidence flip \emph{most} often across paraphrases (82.4\%, against 50.4--64.8\% in the other quartiles). For Llama the top quartile still flips 93.6\% of the time.
+  \item \textbf{A concrete case.} For ``Is halofantrine ototoxic?'' (gold: yes; the authors conclude that it ``can be considered an ototoxic drug''), Llama answers yes under P0, P3 and F1--F4, maybe under P1 and P4, and no under P2. The same evidence yields all three conclusions depending only on the wording.
+\end{itemize}
+
+%% =====================================================================
+\section{Discussion}
+\label{sec:discussion}
+For the small models studied here, the conclusion an LLM draws from a study abstract depends on the prompt for most abstracts. The dependence is largely invisible in the aggregate accuracy that is usually reported. Three implications for LLM-assisted evidence synthesis follow; all are conditional on the model scale we could test.
+
+\emph{First, report conclusion-level stability, not only accuracy.} Prompts with the same accuracy reached opposite conclusions. Flip rate or two-analyst agreement, reported next to the modal-label share, exposes this; accuracy does not.
+
+\emph{Second, low instability can be degenerate.} Every ``stable'' configuration in our data, including the calibrated Qwen model, achieved its stability by giving almost the same answer to every abstract. Stability metrics need a companion check on the diversity of predictions, a point that complements Hariprasad's observation that models can be ``reliably wrong''~\cite{hariprasad2026clinical}.
+
+\emph{Third, mitigations must match the task.} Contextual calibration, one of the mitigations our review highlighted, failed in two different directions because the task has a legitimate answer for empty input. Multi-prompt ensembling was the only intervention that improved both accuracy and agreement, and only when the pooled prompts carried diverse biases. This qualifies the review's recommendation of multi-prompt evaluation~\cite{mizrahi2024stateofwhatart}: the \emph{choice} of prompt pool matters.
+
+Our results are consistent with the concern of Hua et al.~\cite{hua2025flaw} that evaluation artifacts inflate sensitivity, but they also show its limits. Even with parsing removed entirely, conclusions flipped for 63--98\% of abstracts. The validation finding about Qwen's shipped repetition penalty shows that harness defaults are a further, separate source of variation that researchers seldom report.
+
+%% =====================================================================
+\section{Limitations and Threats to Validity}
+\label{sec:limits}
+\begin{itemize}
+  \item \textbf{Scale.} Only two small models (0.5B and 1B) were tested, and both perform close to the majority class. The frozen plan included Qwen2.5-1.5B, but it was dropped for time before any of its outputs existed. Larger models may be more stable, so our effect sizes should not be generalised to frontier systems.
+  \item \textbf{Task.} One dataset and a three-way label. PubMedQA questions are derived from article titles.
+  \item \textbf{Prompts.} The 14 prompts were written by one author, so the space of equivalent prompts is only partly sampled.
+  \item \textbf{Scoring.} Restricted scoring removes parsing artifacts but differs from free-text chat use. It forces a label even when label mass is low, notably for the underspecified prompts.
+  \item \textbf{Sampling analysis.} Sampling variance was simulated from the restricted label distribution rather than from full decoding.
+  \item \textbf{Calibration inputs.} Contextual calibration used the three content-free inputs of the original paper; other inputs, or label subsets, might behave differently.
+  \item \textbf{Protocol.} The decision rules were written after dev-set (not test-set) accuracies for one model had been printed. The single-run fp16 MPS numerics can flip near-ties (maximum probability difference observed: 0.01).
+\end{itemize}
+
+%% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+We asked whether prompt sensitivity, well documented at the benchmark level, also destabilises the conclusions an LLM draws from individual research abstracts. On PubMedQA, with two small open models and a parse-free protocol, it does. Rewording a fully specified prompt changed the conclusion for 63--98\% of abstracts. Prompts with equal accuracy reached opposite conclusions, and two analysts using different single prompts agreed on only 52--61\% of studies. A reproduced mitigation, contextual calibration, failed in this setting because the empty-input answer it treats as bias is a legitimate abstention. Multi-prompt ensembling with diverse prompts was the only intervention that improved both accuracy and agreement. We recommend that LLM-assisted evidence synthesis report conclusion-level stability alongside the diversity of predictions, use diverse multi-prompt ensembles, and publish decoding defaults. Testing whether these effects shrink with model scale is the most valuable next step.
+
+\section*{Reproducibility and AI-Use Statement}
+The code, frozen configuration, per-item probabilities for every model, prompt and abstract, run logs, and the scripts that regenerate every table and figure are included in the accompanying repository (\texttt{README.md}). Claude Code (Anthropic) was used under the author's direction to write and debug code, run experiments, verify references through the OpenAlex and arXiv APIs, and draft this manuscript. Every number was produced by executed code. AI-assisted decisions, errors and corrections are logged in \texttt{ai\_assistance\_log.md}.

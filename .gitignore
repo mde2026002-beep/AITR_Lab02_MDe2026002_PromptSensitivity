@@ -1,0 +1,12 @@
+# raw dataset files are downloaded by scripts/download_data.sh (MIT licence, not redistributed here)
+data/raw/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+paper/*.aux
+paper/*.log
+paper/*.bbl
+paper/*.blg
+paper/*.out
+.env

@@ -1,0 +1,3 @@
+model,seconds,passes,sec_per_pass
+Qwen/Qwen2.5-0.5B-Instruct,3672.1300,7000,0.5246
+meta-llama/Llama-3.2-1B-Instruct,6616.8500,7000,0.9453

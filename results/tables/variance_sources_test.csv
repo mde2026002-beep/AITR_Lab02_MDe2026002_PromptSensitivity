@@ -1,0 +1,11 @@
+model,source,temperature,disagreement
+qwen0.5b,between paraphrases (greedy),0.0000,0.3456
+qwen0.5b,within prompt (repeated sampling),0.7000,0.3163
+qwen0.5b,between paraphrases (sampled),0.7000,0.4410
+qwen0.5b,within prompt (repeated sampling),1.0000,0.4172
+qwen0.5b,between paraphrases (sampled),1.0000,0.4978
+llama1b,between paraphrases (greedy),0.0000,0.5290
+llama1b,within prompt (repeated sampling),0.7000,0.4595
+llama1b,between paraphrases (sampled),0.7000,0.5884
+llama1b,within prompt (repeated sampling),1.0000,0.5377
+llama1b,between paraphrases (sampled),1.0000,0.6122

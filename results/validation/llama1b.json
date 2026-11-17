@@ -1,0 +1,132 @@
+{
+  "model": "meta-llama/Llama-3.2-1B-Instruct",
+  "revision": "9213176726f574b556790deb65791e0c5aa438b6",
+  "sanity": [
+    {
+      "question": "Does the drug lead to recovery?",
+      "expected": "yes",
+      "predicted": "no",
+      "p": [
+        0.411,
+        0.431,
+        0.158
+      ]
+    },
+    {
+      "question": "Does the intervention improve outcomes compared with placebo?",
+      "expected": "no",
+      "predicted": "yes",
+      "p": [
+        0.762,
+        0.196,
+        0.042
+      ]
+    },
+    {
+      "question": "Is smoking associated with lung cancer?",
+      "expected": "yes",
+      "predicted": "yes",
+      "p": [
+        0.892,
+        0.081,
+        0.027
+      ]
+    },
+    {
+      "question": "Does vitamin X lower blood pressure?",
+      "expected": "no",
+      "predicted": "yes",
+      "p": [
+        0.506,
+        0.383,
+        0.111
+      ]
+    }
+  ],
+  "sanity_correct": 1,
+  "shipped_generation_config": {
+    "do_sample": true,
+    "repetition_penalty": 1.0,
+    "temperature": 0.6,
+    "top_p": 0.9,
+    "top_k": 50
+  },
+  "generation_check": {
+    "n": 40,
+    "default_generated_word_is_label": 40,
+    "default_agreement_with_scorer": 1.0,
+    "rp1_generated_word_is_label": 40,
+    "rp1_agreement_with_scorer": 1.0,
+    "conclusion_changed_by_shipped_penalty": 0,
+    "examples": [
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9971264004707336,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9824579954147339,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9947139024734497,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9964513778686523,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9973711371421814,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9970172643661499,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9960387945175171,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      },
+      {
+        "scored_argmax": "yes",
+        "label_mass": 0.9947983622550964,
+        "gen_default": "yes",
+        "word_default": "yes",
+        "gen_rp1": "yes",
+        "word_rp1": "yes"
+      }
+    ]
+  },
+  "rerun_vs_saved": {
+    "max_abs_prob_diff": 0.007066977416992137,
+    "same_argmax": 1.0
+  }
+}

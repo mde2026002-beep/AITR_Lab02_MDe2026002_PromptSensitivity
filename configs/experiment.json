@@ -1,0 +1,44 @@
+{
+  "_frozen": "2026-11-17, before any test-set prediction was generated. Changes after this date must be logged in research_decisions.md (Protocol change log).",
+  "dataset": {
+    "name": "PubMedQA PQA-L (expert-labelled, 1000 items)",
+    "source": "https://huggingface.co/datasets/qiaojin/PubMedQA (config pqa_labeled)",
+    "test_split": "official 500 test ids, https://github.com/pubmedqa/pubmedqa/blob/master/data/test_ground_truth.json",
+    "dev_size": 80,
+    "dev_seed": 2026,
+    "input": "abstract sections without the conclusion + question",
+    "target": "final_decision in {yes, no, maybe}"
+  },
+  "models": [
+    {"id": "Qwen/Qwen2.5-0.5B-Instruct", "revision": "7ae557604adf67be50417f59c2c2f167def9a775", "short": "qwen0.5b"},
+    {"id": "meta-llama/Llama-3.2-1B-Instruct", "revision": "9213176726f574b556790deb65791e0c5aa438b6", "short": "llama1b"},
+    {"id": "Qwen/Qwen2.5-1.5B-Instruct", "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306", "short": "qwen1.5b"}
+  ],
+  "inference": {
+    "method": "restricted next-token scoring over {yes,no,maybe} surface tokens after the chat template",
+    "dtype": "float16", "device": "mps", "batch_size": 4,
+    "llama_template_date": "17 Nov 2026"
+  },
+  "prompts": "src/prompts.py (14 distinct prompts; families para={P0..P4}, fmt={P0,F1..F4}, min={M1..M5}; canonical=P0)",
+  "content_free_inputs": ["N/A", "", "[MASK]"],
+  "methods": {
+    "MAJ": "majority class from dev (always 'yes')",
+    "B1": "single canonical prompt P0, argmax",
+    "B2": "single prompt with best dev macro-F1, argmax",
+    "CC": "contextual calibration (Zhao et al. 2021) per prompt",
+    "ENS": "average label probabilities over a prompt set, argmax",
+    "ENS+CC": "average of calibrated probabilities"
+  },
+  "primary_metric": "macro-F1 on test (higher is better)",
+  "stability_metrics": [
+    "pairwise disagreement / sensitivity (Errica et al. 2025, Eq.1 in review; lower is better)",
+    "flip rate: fraction of abstracts whose conclusion differs under >=1 prompt in a set (lower is better)",
+    "Fleiss kappa across prompts (higher is better)",
+    "accuracy and macro-F1 range across prompts (lower is better)",
+    "two-analyst agreement: P(two independent k-prompt ensembles reach the same conclusion) (higher is better)"
+  ],
+  "sampling_analysis": {"temperatures": [0.7, 1.0], "samples_per_prompt": 10, "seed": 2026},
+  "bootstrap": {"n": 2000, "seed": 2026, "unit": "abstract"},
+  "deep_analyses": ["family ablation (para/fmt/min)", "calibration ablation", "prompt variance vs sampling variance",
+                    "number-of-prompts cost curve", "per-class error and flip analysis"]
+}

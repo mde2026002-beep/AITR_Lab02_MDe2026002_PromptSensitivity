@@ -1,0 +1,6 @@
+python 3.13.5 | torch 2.9.1 | transformers 4.57.3 | numpy 2.1.3
+platform macOS-26.7.1-arm64-arm-64bit-Mach-O
+mps available True | cuda available False
+checksum ok pqa_labeled.parquet
+checksum ok test_ground_truth.json
+partitions {'test': 500, 'dev': 80} test labels {'yes': 276, 'no': 169, 'maybe': 55}

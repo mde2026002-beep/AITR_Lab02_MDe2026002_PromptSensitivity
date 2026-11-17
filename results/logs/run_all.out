@@ -1,0 +1,67 @@
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+[qwen0.5b] loaded in 1.3s on mps
+[qwen0.5b] dev P0: n=80 46s acc=0.388
+[qwen0.5b] dev P1: n=80 46s acc=0.125
+[qwen0.5b] dev P2: n=80 45s acc=0.412
+[qwen0.5b] dev P3: n=80 45s acc=0.125
+[qwen0.5b] dev P4: n=80 45s acc=0.100
+[qwen0.5b] dev F1: n=80 48s acc=0.350
+[qwen0.5b] dev F2: n=80 49s acc=0.550
+[qwen0.5b] dev F3: n=80 45s acc=0.375
+[qwen0.5b] dev F4: n=80 46s acc=0.225
+[qwen0.5b] dev M1: n=80 39s acc=0.512
+[qwen0.5b] dev M2: n=80 43s acc=0.487
+[qwen0.5b] dev M3: n=80 37s acc=0.512
+[qwen0.5b] dev M4: n=80 37s acc=0.512
+[qwen0.5b] dev M5: n=80 37s acc=0.487
+[qwen0.5b] test P0: n=500 280s acc=0.358
+[qwen0.5b] test P1: n=500 279s acc=0.158
+[qwen0.5b] test P2: n=500 276s acc=0.416
+[qwen0.5b] test P3: n=500 272s acc=0.164
+[qwen0.5b] test P4: n=500 269s acc=0.112
+[qwen0.5b] test F1: n=500 277s acc=0.420
+[qwen0.5b] test F2: n=500 293s acc=0.586
+[qwen0.5b] test F3: n=500 271s acc=0.336
+[qwen0.5b] test F4: n=500 287s acc=0.264
+[qwen0.5b] test M1: n=500 229s acc=0.566
+[qwen0.5b] test M2: n=500 228s acc=0.564
+[qwen0.5b] test M3: n=500 230s acc=0.572
+[qwen0.5b] test M4: n=500 233s acc=0.566
+[qwen0.5b] test M5: n=500 250s acc=0.552
+[llama1b] loaded in 6.4s on mps
+[llama1b] dev P0: n=80 126s acc=0.487
+[llama1b] dev P1: n=80 446s acc=0.475
+[llama1b] dev P2: n=80 661s acc=0.625
+[llama1b] dev P3: n=80 236s acc=0.475
+[llama1b] dev P4: n=80 139s acc=0.375
+[llama1b] dev F1: n=80 117s acc=0.500
+[llama1b] dev F2: n=80 112s acc=0.487
+[llama1b] dev F3: n=80 98s acc=0.487
+[llama1b] dev F4: n=80 100s acc=0.487
+[llama1b] dev M1: n=80 82s acc=0.600
+[llama1b] dev M2: n=80 80s acc=0.475
+[llama1b] dev M3: n=80 83s acc=0.500
+[llama1b] dev M4: n=80 89s acc=0.475
+[llama1b] dev M5: n=80 83s acc=0.562
+[llama1b] test P0: n=500 645s acc=0.558
+[llama1b] test P1: n=500 635s acc=0.564
+[llama1b] test P2: n=500 633s acc=0.538
+[llama1b] test P3: n=500 480s acc=0.550
+[llama1b] test P4: n=500 369s acc=0.356
+[llama1b] test F1: n=500 418s acc=0.558
+[llama1b] test F2: n=500 576s acc=0.550
+[llama1b] test F3: n=500 481s acc=0.552
+[llama1b] test F4: n=500 496s acc=0.550
+[llama1b] test M1: n=500 358s acc=0.570
+[llama1b] test M2: n=500 330s acc=0.568
+[llama1b] test M3: n=500 385s acc=0.536
+[llama1b] test M4: n=500 399s acc=0.420
+[llama1b] test M5: n=500 412s acc=0.614
+[qwen1.5b] loaded in 8.3s on mps

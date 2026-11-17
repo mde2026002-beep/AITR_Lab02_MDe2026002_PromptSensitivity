@@ -1,0 +1,37 @@
+query	rank	title	year	cited_by	doi
+prompt sensitivity PubMedQA	1	When Chain-of-Thought Backfires: Evaluating Prompt Sensitivity in Medical Language Models	2026	2	https://doi.org/10.21203/rs.3.rs-8759042/v1
+prompt sensitivity PubMedQA	2	Improving Small Language Models on PubMedQA via Generative Data Augmentation	2023	53	https://doi.org/10.48550/arxiv.2305.07804
+prompt sensitivity PubMedQA	3	Prompt Sensitivity and Answer Consistency in Clinical Question Answering Using Small Open-Source Language Models: Empirical Evaluation for Low-Resource Healthcare (Preprint)	2026	0	https://doi.org/10.2196/preprints.95583
+prompt sensitivity PubMedQA	4	Prompt Sensitivity and Answer Consistency of Small Open-Source Language Models for Clinical Question Answering in Low-Resource Healthcare	2026	1	https://doi.org/10.48550/arxiv.2603.00917
+prompt sensitivity PubMedQA	5	Can LLMs Correct Physicians, Yet? Investigating Effective Interaction Methods in the Medical Domain	2024	16	https://doi.org/10.18653/v1/2024.clinicalnlp-1.19
+prompt sensitivity PubMedQA	6	Graph Neural Prompting with Large Language Models	2024	196	https://doi.org/10.1609/aaai.v38i17.29875
+prompt sensitivity biomedical question answering	1	OLAPH: Improving Factuality in Biomedical Long-form Question Answering	2024	33	https://doi.org/10.48550/arxiv.2405.12701
+prompt sensitivity biomedical question answering	2	Enhancing Biomedical Question Answering with Large Language Models	2024	16	https://doi.org/10.3390/info15080494
+prompt sensitivity biomedical question answering	3	Prompt Sensitivity and Answer Consistency of Small Open-Source Language Models for Clinical Question Answering in Low-Resource Healthcare	2026	1	https://doi.org/10.48550/arxiv.2603.00917
+prompt sensitivity biomedical question answering	4	Recent Advances in Automated Question Answering In Biomedical Domain	2021	2	https://doi.org/10.48550/arxiv.2111.05937
+prompt sensitivity biomedical question answering	5	Condition-Gated Reasoning for Context-Dependent Biomedical Question Answering	2026	2	https://doi.org/10.1145/3770855.3818963
+prompt sensitivity biomedical question answering	6	HypothesisMed: Inference-Time Answer Fusion and Structured Hypothesis-Space Reporting for Biomedical Question Answering	2026	0	https://doi.org/10.48550/arxiv.2606.00971
+contextual calibration prompt variance	1	Calibration-Gated LLM Pseudo-Observations for Online Contextual Bandits	2026	0	https://doi.org/10.48550/arxiv.2604.14961
+contextual calibration prompt variance	2	CADMAS-CTX: Contextual Capability Calibration for Multi-Agent Delegation	2026	2	https://doi.org/10.48550/arxiv.2604.17950
+contextual calibration prompt variance	3	A Survey of Confidence Estimation and Calibration in Large Language Models	2024	555	https://doi.org/10.18653/v1/2024.naacl-long.366
+contextual calibration prompt variance	4	Calibrate Before Use: Improving Few-Shot Performance of Language Models	2021	1827	https://doi.org/10.48550/arxiv.2102.09690
+contextual calibration prompt variance	5	The CLARIFIES+ Framework: A Contextualized Prompting Approach for Generative Artificial Intelligence	2026	10	https://doi.org/10.58304/ijts.260215
+contextual calibration prompt variance	6	The Prompt Report: A Systematic Survey of Prompt Engineering Techniques	2024	1097	https://doi.org/10.48550/arxiv.2406.06608
+multi-prompt evaluation medical question answering	1	Evidence-Driven Chain-of-Thought Prompting with Multi-Dimensional Evidence Evaluation for Medical Question Answering	2026	1	https://doi.org/10.1109/iscait69154.2026.11477466
+multi-prompt evaluation medical question answering	2	Knowledge Graph Prompting for Multi-Document Question Answering	2024	448	https://doi.org/10.1609/aaai.v38i17.29889
+multi-prompt evaluation medical question answering	3	D2MNet: Difference-Aware Decoupling and Multi-Prompt Learning for Medical Difference Visual Question Answering	2026	0	https://doi.org/10.3390/jimaging12040162
+multi-prompt evaluation medical question answering	4	Medical visual question answering: A survey	2023	304	https://doi.org/10.1016/j.artmed.2023.102611
+multi-prompt evaluation medical question answering	5	Bridging the Semantic Gap in Medical Visual Question Answering With Prompt Learning	2025	15	https://doi.org/10.1109/tmi.2025.3580561
+multi-prompt evaluation medical question answering	6	Toward expert-level medical question answering with large language models	2025	3094	https://doi.org/10.1038/s41591-024-03423-7
+prompt paraphrase stability systematic review large language model	1	Prompt Stability Scoring for Text Annotation with Large Language Models	2024	41	https://doi.org/10.48550/arxiv.2407.02039
+prompt paraphrase stability systematic review large language model	2	On the Worst Prompt Performance of Large Language Models	2024	130	https://doi.org/10.52202/079017-2205
+prompt paraphrase stability systematic review large language model	3	Efficient Prompting Methods for Large Language Models: A Survey	2024	170	https://doi.org/10.48550/arxiv.2404.01077
+prompt paraphrase stability systematic review large language model	4	Probing Instruction Execution Stability of Large Language Models under Semantic Paraphrase	2026	0	https://doi.org/10.2139/ssrn.7430258
+prompt paraphrase stability systematic review large language model	5	Explainability for Large Language Models: A Survey	2024	1429	https://doi.org/10.1145/3639372
+prompt paraphrase stability systematic review large language model	6	Evaluating Large Language Models in Ophthalmology: Systematic Review	2025	48	https://doi.org/10.2196/76947
+LLM conclusions reproducibility prompt wording scientific abstracts	1	Prompt Injection attack against LLM-integrated Applications	2023	1221	https://doi.org/10.48550/arxiv.2306.05499
+LLM conclusions reproducibility prompt wording scientific abstracts	2	A survey on LLM-as-a-judge	2026	2131	https://doi.org/10.1016/j.xinn.2025.101253
+LLM conclusions reproducibility prompt wording scientific abstracts	3	ODD+LLM: Specifying LLM-Agent Behavior for Reproducible Social Simulation	2026	0	https://doi.org/10.48550/arxiv.2611.08932
+LLM conclusions reproducibility prompt wording scientific abstracts	4	Can LLMs Reliably Identify Causal Conclusions in Scientific Literature? A Multidisciplinary Evaluation	2026	0	https://doi.org/10.18653/2026.findings-emnlp.597
+LLM conclusions reproducibility prompt wording scientific abstracts	5	Understanding LLM Reasoning for Abstractive Summarization	2026	14	https://doi.org/10.18653/v1/2026.findings-acl.859
+LLM conclusions reproducibility prompt wording scientific abstracts	6	LLM-as-a-Reviewer: Benchmarking Their Ability, Divergence, and Prompt Injection Resistance as Paper Reviewers	2026	7	https://doi.org/10.48550/arxiv.2605.25415
